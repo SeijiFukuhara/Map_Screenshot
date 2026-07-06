@@ -6,26 +6,24 @@ import type {
   PlacesAutocompleteResponse,
 } from '@routecard/shared';
 
-import { functions } from './firebase';
-
-const computeRoutesCallable = httpsCallable<ComputeRoutesRequest, ComputeRoutesResponse>(
-  functions,
-  'computeRoutes'
-);
-
-const placesAutocompleteCallable = httpsCallable<
-  PlacesAutocompleteRequest,
-  PlacesAutocompleteResponse
->(functions, 'placesAutocomplete');
+import { getFirebaseFunctions } from './firebase';
 
 export async function computeRoutes(req: ComputeRoutesRequest): Promise<ComputeRoutesResponse> {
-  const result = await computeRoutesCallable(req);
+  const callable = httpsCallable<ComputeRoutesRequest, ComputeRoutesResponse>(
+    getFirebaseFunctions(),
+    'computeRoutes'
+  );
+  const result = await callable(req);
   return result.data;
 }
 
 export async function placesAutocomplete(
   req: PlacesAutocompleteRequest
 ): Promise<PlacesAutocompleteResponse> {
-  const result = await placesAutocompleteCallable(req);
+  const callable = httpsCallable<PlacesAutocompleteRequest, PlacesAutocompleteResponse>(
+    getFirebaseFunctions(),
+    'placesAutocomplete'
+  );
+  const result = await callable(req);
   return result.data;
 }

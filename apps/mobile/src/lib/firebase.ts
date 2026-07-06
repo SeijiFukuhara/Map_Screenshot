@@ -1,7 +1,7 @@
-import { getApp, getApps, initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getFunctions } from 'firebase/functions';
+import { getApp, getApps, initializeApp, type FirebaseApp } from 'firebase/app';
+import { getAuth, signInAnonymously, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getFunctions, type Functions } from 'firebase/functions';
 
 // 値はEAS/expoの環境変数（EXPO_PUBLIC_*）から読み込む。実際の値は .env に設定する
 const firebaseConfig = {
@@ -13,19 +13,44 @@ const firebaseConfig = {
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
+let db: Firestore | null = null;
+let functions: Functions | null = null;
+
+// firebaseConfig未設定（.env未作成）だとgetAuth()等がモジュール読み込み時点で例外を投げ、
+// Firebaseを使わない画面までアプリ全体がクラッシュする。そのため初期化は実際に使う直前まで遅延する
+function getFirebaseApp(): FirebaseApp {
+  if (!app) {
+    app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  }
+  return app;
+}
+
+export function getFirebaseAuth(): Auth {
+  if (!auth) auth = getAuth(getFirebaseApp());
+  return auth;
+}
+
+export function getFirebaseDb(): Firestore {
+  if (!db) db = getFirestore(getFirebaseApp());
+  return db;
+}
+
+export function getFirebaseFunctions(): Functions {
+  if (!functions) functions = getFunctions(getFirebaseApp(), 'asia-northeast1');
+  return functions;
+}
 
 // TODO: 現状は既定の永続化（メモリ）のため、アプリ再起動でサインインし直しになり、
 // 過去に作成したカードの createdBy と一致しなくなる（再共有・削除が失敗する）。
 // firebase JS SDKのReact Native向け永続化（AsyncStorage）の最新の設定方法を確認して対応する。
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const functions = getFunctions(app, 'asia-northeast1');
 
 /** 匿名認証でサインインする。カード作成（Firestore create）に必要 */
 export async function ensureSignedIn() {
-  if (!auth.currentUser) {
-    await signInAnonymously(auth);
+  const authInstance = getFirebaseAuth();
+  if (!authInstance.currentUser) {
+    await signInAnonymously(authInstance);
   }
-  return auth.currentUser;
+  return authInstance.currentUser;
 }

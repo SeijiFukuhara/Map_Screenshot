@@ -11,7 +11,7 @@ import {
 } from 'firebase/firestore';
 import type { Place, RouteCard, RouteOption } from '@routecard/shared';
 
-import { db, ensureSignedIn } from './firebase';
+import { ensureSignedIn, getFirebaseDb } from './firebase';
 
 const CARDS_COLLECTION = 'routeCards';
 const EXPIRES_AFTER_DAYS = 7;
@@ -48,7 +48,7 @@ export async function createCard(input: CreateCardInput): Promise<string> {
     expiresAt: Timestamp.fromDate(expiresAtDate),
   };
 
-  const ref = await addDoc(collection(db, CARDS_COLLECTION), card);
+  const ref = await addDoc(collection(getFirebaseDb(), CARDS_COLLECTION), card);
   return ref.id;
 }
 
@@ -57,7 +57,7 @@ export async function listMyCards(): Promise<(RouteCard & { id: string })[]> {
   if (!user) return [];
 
   const q = query(
-    collection(db, CARDS_COLLECTION),
+    collection(getFirebaseDb(), CARDS_COLLECTION),
     where('createdBy', '==', user.uid),
     orderBy('createdAt', 'desc')
   );
@@ -69,5 +69,5 @@ export async function listMyCards(): Promise<(RouteCard & { id: string })[]> {
 }
 
 export async function deleteCard(cardId: string): Promise<void> {
-  await deleteDoc(doc(db, CARDS_COLLECTION, cardId));
+  await deleteDoc(doc(getFirebaseDb(), CARDS_COLLECTION, cardId));
 }
