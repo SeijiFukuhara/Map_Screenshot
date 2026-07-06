@@ -1,0 +1,15 @@
+{
+  "name": "routecard",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "functions"
+  ],
+  "scripts": {
+    "mobile": "npm run start --workspace=mobile",
+    "functions:build": "npm run build --workspace=functions",
+    "functions:serve": "npm run serve --workspace=functions",
+    "shared:build": "npm run build --workspace=@routecard/shared"
+  }
+}
