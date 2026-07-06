@@ -5,6 +5,7 @@ import type { Place } from '@routecard/shared';
 import { placesAutocomplete } from '@/lib/api';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { useTheme } from '@/hooks/use-theme';
 
 interface Suggestion {
   placeId: string;
@@ -22,6 +23,7 @@ function newSessionToken() {
 }
 
 export function PlaceInput({ label, value, onChange }: PlaceInputProps) {
+  const theme = useTheme();
   const [text, setText] = useState(value?.name ?? '');
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const sessionTokenRef = useRef(newSessionToken());
@@ -67,15 +69,25 @@ export function PlaceInput({ label, value, onChange }: PlaceInputProps) {
         value={text}
         onChangeText={handleChangeText}
         placeholder={`${label}を入力`}
-        style={styles.input}
+        placeholderTextColor={theme.textSecondary}
+        style={[
+          styles.input,
+          { color: theme.text, backgroundColor: theme.backgroundElement, borderColor: theme.backgroundSelected },
+        ]}
       />
       {suggestions.length > 0 && (
         <FlatList
-          style={styles.suggestions}
+          style={[
+            styles.suggestions,
+            { backgroundColor: theme.backgroundElement, borderColor: theme.backgroundSelected },
+          ]}
           data={suggestions}
           keyExtractor={(item) => item.placeId}
           renderItem={({ item }) => (
-            <Pressable style={styles.suggestionRow} onPress={() => handleSelect(item)}>
+            <Pressable
+              style={[styles.suggestionRow, { borderBottomColor: theme.backgroundSelected }]}
+              onPress={() => handleSelect(item)}
+            >
               <ThemedText>{item.description}</ThemedText>
             </Pressable>
           )}
@@ -89,7 +101,6 @@ const styles = StyleSheet.create({
   container: { gap: 4 },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -98,13 +109,11 @@ const styles = StyleSheet.create({
   suggestions: {
     maxHeight: 160,
     borderWidth: 1,
-    borderColor: '#eee',
     borderRadius: 8,
   },
   suggestionRow: {
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
   },
 });

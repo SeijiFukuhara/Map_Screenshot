@@ -59,7 +59,7 @@ function RouteOptionCard({
       )}
 
       <Pressable style={styles.selectButton} onPress={onSelect}>
-        <ThemedText themeColor="background">このルートでカードを作る</ThemedText>
+        <ThemedText style={styles.buttonLabel}>このルートでカードを作る</ThemedText>
       </Pressable>
     </ThemedView>
   );
@@ -107,5 +107,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
+  buttonLabel: { color: '#ffffff' },
   empty: { textAlign: 'center', marginTop: Spacing.five },
 });

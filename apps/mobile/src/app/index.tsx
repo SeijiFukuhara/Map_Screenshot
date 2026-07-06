@@ -1,7 +1,7 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PlaceInput } from '@/components/place-input';
@@ -31,7 +31,8 @@ export default function RouteCreateScreen() {
 
   async function handleSearch() {
     if (!origin || !destination) {
-      Alert.alert('出発地と目的地を選択してください');
+      // Alert.alert()はreact-native-webでは表示されないため、画面内のエラー表示を使う
+      setError('出発地と目的地を、候補一覧から選択してください');
       return;
     }
 
@@ -69,13 +70,17 @@ export default function RouteCreateScreen() {
             style={[styles.toggleButton, searchType === 'departure' && styles.toggleButtonActive]}
             onPress={() => setSearchType('departure')}
           >
-            <ThemedText>出発</ThemedText>
+            <ThemedText style={searchType === 'departure' && styles.toggleButtonActiveLabel}>
+              出発
+            </ThemedText>
           </Pressable>
           <Pressable
             style={[styles.toggleButton, searchType === 'arrival' && styles.toggleButtonActive]}
             onPress={() => setSearchType('arrival')}
           >
-            <ThemedText>到着</ThemedText>
+            <ThemedText style={searchType === 'arrival' && styles.toggleButtonActiveLabel}>
+              到着
+            </ThemedText>
           </Pressable>
         </ThemedView>
 
@@ -87,7 +92,7 @@ export default function RouteCreateScreen() {
 
         {error && (
           <ThemedView style={styles.errorBox}>
-            <ThemedText themeColor="text">{error}</ThemedText>
+            <ThemedText style={styles.errorText}>{error}</ThemedText>
             <Pressable onPress={handleSearch}>
               <ThemedText type="linkPrimary">再試行</ThemedText>
             </Pressable>
@@ -95,7 +100,7 @@ export default function RouteCreateScreen() {
         )}
 
         <Pressable style={styles.searchButton} onPress={handleSearch} disabled={loading}>
-          <ThemedText themeColor="background">{loading ? '検索中…' : '検索'}</ThemedText>
+          <ThemedText style={styles.buttonLabel}>{loading ? '検索中…' : '検索'}</ThemedText>
         </Pressable>
       </ThemedView>
     </SafeAreaView>
@@ -116,7 +121,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   toggleButtonActive: { borderColor: '#1a73e8', backgroundColor: '#e8f0fe' },
+  toggleButtonActiveLabel: { color: '#1a73e8' },
   errorBox: { padding: Spacing.three, backgroundColor: '#fdecea', borderRadius: 8, gap: 4 },
+  errorText: { color: '#611a15' },
   searchButton: {
     marginTop: 'auto',
     backgroundColor: '#1a73e8',
@@ -124,4 +131,5 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
+  buttonLabel: { color: '#ffffff' },
 });

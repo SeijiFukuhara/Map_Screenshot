@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, Share, StyleSheet, TextInput } from 'react-native';
+import { Pressable, Share, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -8,6 +8,7 @@ import { ThemedView } from '@/components/themed-view';
 import { createCard } from '@/lib/cards';
 import { useRouteSearch } from '@/lib/route-search-context';
 import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 const HOSTING_DOMAIN = process.env.EXPO_PUBLIC_HOSTING_DOMAIN ?? 'https://routecard.example.com';
 const MEMO_MAX_LENGTH = 200;
@@ -21,9 +22,11 @@ function formatDateTime(iso: string) {
 
 export default function CardEditScreen() {
   const router = useRouter();
+  const theme = useTheme();
   const { origin, destination, selected, setSelected } = useRouteSearch();
   const [memo, setMemo] = useState('');
   const [sharing, setSharing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!origin || !destination || !selected) {
     return (
@@ -39,6 +42,7 @@ export default function CardEditScreen() {
 
   async function handleShare() {
     setSharing(true);
+    setError(null);
     try {
       const cardId = await createCard({ origin: origin!, destination: destination!, route: selected!, memo });
       const url = `${HOSTING_DOMAIN}/r/${cardId}`;
@@ -49,7 +53,7 @@ export default function CardEditScreen() {
       setSelected(null);
       router.replace('/history');
     } catch (e) {
-      Alert.alert('共有に失敗しました', e instanceof Error ? e.message : String(e));
+      setError(e instanceof Error ? e.message : '共有に失敗しました');
     } finally {
       setSharing(false);
     }
@@ -74,12 +78,22 @@ export default function CardEditScreen() {
           value={memo}
           onChangeText={(t) => setMemo(t.slice(0, MEMO_MAX_LENGTH))}
           placeholder="例: 北改札前に9:00集合"
+          placeholderTextColor={theme.textSecondary}
           multiline
-          style={styles.memoInput}
+          style={[
+            styles.memoInput,
+            { color: theme.text, backgroundColor: theme.backgroundElement, borderColor: theme.backgroundSelected },
+          ]}
         />
 
+        {error && (
+          <ThemedView style={styles.errorBox}>
+            <ThemedText style={styles.errorText}>{error}</ThemedText>
+          </ThemedView>
+        )}
+
         <Pressable style={styles.shareButton} onPress={handleShare} disabled={sharing}>
-          <ThemedText themeColor="background">{sharing ? '共有準備中…' : '共有する'}</ThemedText>
+          <ThemedText style={styles.buttonLabel}>{sharing ? '共有準備中…' : '共有する'}</ThemedText>
         </Pressable>
       </ThemedView>
     </SafeAreaView>
@@ -92,7 +106,6 @@ const styles = StyleSheet.create({
   preview: { padding: Spacing.three, borderRadius: 8, gap: 4 },
   memoInput: {
     borderWidth: 1,
-    borderColor: '#ccc',
     borderRadius: 8,
     padding: Spacing.two,
     minHeight: 80,
@@ -105,5 +118,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
+  buttonLabel: { color: '#ffffff' },
+  errorBox: { padding: Spacing.three, backgroundColor: '#fdecea', borderRadius: 8 },
+  errorText: { color: '#611a15' },
   empty: { textAlign: 'center', marginTop: Spacing.five },
 });
